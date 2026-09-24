@@ -26,15 +26,18 @@ export const Route = createFileRoute("/quote")({
   component: Quote,
 });
 
-// Placeholder recipient — replace with the studio's real email address.
-const QUOTE_EMAIL = "craftinteriorswoodworks@gmail.com";
+const QUOTE_EMAIL = "craftinteriorworks@gmail.com";
+const ENDPOINT = `https://formsubmit.co/ajax/${QUOTE_EMAIL}`;
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary";
 
 function Quote() {
   const [submitted, setSubmitted] = useState(false);
-  const [fileName, setFileName] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const fileName = file?.name ?? "";
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -48,25 +51,40 @@ function Quote() {
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const subject = `Quote request — ${form.name || "New enquiry"}`;
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      `Phone: ${form.phone}`,
-      `Dimensions / size: ${form.dimensions || "—"}`,
-      `Reference photo: ${fileName || "none attached"}`,
-      "",
-      "Message:",
-      form.message || "—",
-      "",
-      "(If a reference photo was selected, please attach it when your email opens.)",
-    ].join("\n");
-    window.location.href = `mailto:${QUOTE_EMAIL}?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
-    setSubmitted(true);
+    setError("");
+    if (file && file.size > 5 * 1024 * 1024) {
+      setError("Please choose a photo smaller than 5 MB.");
+      return;
+    }
+    setSending(true);
+    try {
+      const fd = new FormData();
+      fd.append("_subject", `Quote request — ${form.name.trim()}`);
+      fd.append("_template", "table");
+      fd.append("_captcha", "false");
+      fd.append("_replyto", form.email.trim());
+      fd.append("Name", form.name.trim().slice(0, 100));
+      fd.append("Email", form.email.trim().slice(0, 255));
+      fd.append("Phone", form.phone.trim().slice(0, 30));
+      fd.append("Dimensions", form.dimensions.trim().slice(0, 200) || "—");
+      fd.append("Message", form.message.trim().slice(0, 2000) || "—");
+      if (file) fd.append("attachment", file);
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        body: fd,
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error("failed");
+      setSubmitted(true);
+    } catch {
+      setError(
+        "Sorry, we couldn't send your request. Please try again or call 093491 41289.",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
