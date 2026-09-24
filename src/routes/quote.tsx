@@ -26,15 +26,18 @@ export const Route = createFileRoute("/quote")({
   component: Quote,
 });
 
-// Placeholder recipient — replace with the studio's real email address.
-const QUOTE_EMAIL = "craftinteriorswoodworks@gmail.com";
+const QUOTE_EMAIL = "craftinteriorworks@gmail.com";
+const ENDPOINT = `https://formsubmit.co/ajax/${QUOTE_EMAIL}`;
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary";
 
 function Quote() {
   const [submitted, setSubmitted] = useState(false);
-  const [fileName, setFileName] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const fileName = file?.name ?? "";
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -48,25 +51,40 @@ function Quote() {
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const subject = `Quote request — ${form.name || "New enquiry"}`;
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      `Phone: ${form.phone}`,
-      `Dimensions / size: ${form.dimensions || "—"}`,
-      `Reference photo: ${fileName || "none attached"}`,
-      "",
-      "Message:",
-      form.message || "—",
-      "",
-      "(If a reference photo was selected, please attach it when your email opens.)",
-    ].join("\n");
-    window.location.href = `mailto:${QUOTE_EMAIL}?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
-    setSubmitted(true);
+    setError("");
+    if (file && file.size > 5 * 1024 * 1024) {
+      setError("Please choose a photo smaller than 5 MB.");
+      return;
+    }
+    setSending(true);
+    try {
+      const fd = new FormData();
+      fd.append("_subject", `Quote request — ${form.name.trim()}`);
+      fd.append("_template", "table");
+      fd.append("_captcha", "false");
+      fd.append("_replyto", form.email.trim());
+      fd.append("Name", form.name.trim().slice(0, 100));
+      fd.append("Email", form.email.trim().slice(0, 255));
+      fd.append("Phone", form.phone.trim().slice(0, 30));
+      fd.append("Dimensions", form.dimensions.trim().slice(0, 200) || "—");
+      fd.append("Message", form.message.trim().slice(0, 2000) || "—");
+      if (file) fd.append("attachment", file);
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        body: fd,
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error("failed");
+      setSubmitted(true);
+    } catch {
+      setError(
+        "Sorry, we couldn't send your request. Please try again or call 093491 41289.",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -76,36 +94,22 @@ function Quote() {
         Tell us about your space
       </h1>
       <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-        Fill this in and your email app will open with everything ready to
-        send — you can attach your reference photo there. We reply within{" "}
+        Share your details and a reference photo — they come straight to our
+        team. We reply within{" "}
         <span className="text-foreground">24–48 hours</span>.
       </p>
 
-      {submitted && (
+      {submitted ? (
         <div
           role="status"
-          className="mt-8 border border-primary/40 bg-accent/40 px-6 py-5"
+          className="mt-10 border border-primary/40 bg-accent/40 px-6 py-8"
         >
-          <p className="font-display text-xl">Thank you — your draft is ready.</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            If your email app didn't open automatically, call us on{" "}
-            <a href="tel:+919349141289" className="link-underline text-foreground">
-              093491 41289
-            </a>{" "}
-            or WhatsApp{" "}
-            <a
-              href="https://wa.me/919349141289"
-              target="_blank"
-              rel="noreferrer"
-              className="link-underline text-foreground"
-            >
-              093491 41289
-            </a>
-            . We'll get back to you within 24–48 hours.
+          <p className="font-display text-2xl">Thank you, {form.name.split(" ")[0]}.</p>
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+            We'll get back to you within 24-48 hrs.
           </p>
         </div>
-      )}
-
+      ) : (
       <form onSubmit={onSubmit} className="mt-10 space-y-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
@@ -150,14 +154,12 @@ function Quote() {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="w-full cursor-pointer rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-sm file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:text-secondary-foreground"
           />
-          {fileName && (
-            <span className="mt-1.5 block text-xs text-muted-foreground">
-              Selected: {fileName} — attach it when your email opens.
-            </span>
-          )}
+          <span className="mt-1.5 block text-xs text-muted-foreground">
+            {fileName ? `Selected: ${fileName}` : "Optional · image up to 5 MB"}
+          </span>
         </label>
 
         <label className="block">
@@ -183,17 +185,20 @@ function Quote() {
           />
         </label>
 
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <button
           type="submit"
-          className="rounded-sm bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          disabled={sending}
+          className="rounded-sm bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
         >
-          Send Request
+          {sending ? "Sending…" : "Send Request"}
         </button>
-        <p className="text-xs text-muted-foreground">
-          Sending opens your email app with the details pre-filled — nothing is
-          stored on this website.
-        </p>
       </form>
+      )}
     </div>
   );
 }
