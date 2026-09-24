@@ -154,14 +154,12 @@ function Quote() {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="w-full cursor-pointer rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-sm file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:text-secondary-foreground"
           />
-          {fileName && (
-            <span className="mt-1.5 block text-xs text-muted-foreground">
-              Selected: {fileName} — attach it when your email opens.
-            </span>
-          )}
+          <span className="mt-1.5 block text-xs text-muted-foreground">
+            {fileName ? `Selected: ${fileName}` : "Optional · image up to 5 MB"}
+          </span>
         </label>
 
         <label className="block">
@@ -187,17 +185,20 @@ function Quote() {
           />
         </label>
 
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <button
           type="submit"
-          className="rounded-sm bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          disabled={sending}
+          className="rounded-sm bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
         >
-          Send Request
+          {sending ? "Sending…" : "Send Request"}
         </button>
-        <p className="text-xs text-muted-foreground">
-          Sending opens your email app with the details pre-filled — nothing is
-          stored on this website.
-        </p>
       </form>
+      )}
     </div>
   );
 }
