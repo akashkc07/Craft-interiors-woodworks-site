@@ -94,36 +94,22 @@ function Quote() {
         Tell us about your space
       </h1>
       <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-        Fill this in and your email app will open with everything ready to
-        send — you can attach your reference photo there. We reply within{" "}
+        Share your details and a reference photo — they come straight to our
+        team. We reply within{" "}
         <span className="text-foreground">24–48 hours</span>.
       </p>
 
-      {submitted && (
+      {submitted ? (
         <div
           role="status"
-          className="mt-8 border border-primary/40 bg-accent/40 px-6 py-5"
+          className="mt-10 border border-primary/40 bg-accent/40 px-6 py-8"
         >
-          <p className="font-display text-xl">Thank you — your draft is ready.</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            If your email app didn't open automatically, call us on{" "}
-            <a href="tel:+919349141289" className="link-underline text-foreground">
-              093491 41289
-            </a>{" "}
-            or WhatsApp{" "}
-            <a
-              href="https://wa.me/919349141289"
-              target="_blank"
-              rel="noreferrer"
-              className="link-underline text-foreground"
-            >
-              093491 41289
-            </a>
-            . We'll get back to you within 24–48 hours.
+          <p className="font-display text-2xl">Thank you, {form.name.split(" ")[0]}.</p>
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+            We'll get back to you within 24-48 hrs.
           </p>
         </div>
-      )}
-
+      ) : (
       <form onSubmit={onSubmit} className="mt-10 space-y-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
