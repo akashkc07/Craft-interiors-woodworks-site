@@ -101,7 +101,7 @@ function Index() {
           <div>
             <p className="eyebrow text-primary">What we make</p>
             <h2 className="mt-2 font-display text-3xl font-light md:text-4xl">
-              Browse by category
+              Categories
             </h2>
           </div>
           <Link
