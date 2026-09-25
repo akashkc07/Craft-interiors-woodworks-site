@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 
 export const Route = createFileRoute("/quote")({
   head: () => ({
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/quote")({
 });
 
 const QUOTE_EMAIL = "craftinteriorworks@gmail.com";
-const ENDPOINT = `https://formsubmit.co/ajax/${QUOTE_EMAIL}`;
+const ENDPOINT = `https://formsubmit.co/${QUOTE_EMAIL}`;
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary";
