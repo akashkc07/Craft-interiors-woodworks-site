@@ -95,12 +95,29 @@ function Quote() {
           </p>
         </div>
       ) : (
-      <form onSubmit={onSubmit} className="mt-10 space-y-5">
+      <form
+        onSubmit={onSubmit}
+        action={ENDPOINT}
+        method="POST"
+        encType="multipart/form-data"
+        target="quote-submit-frame"
+        className="mt-10 space-y-5"
+      >
+        <input
+          type="hidden"
+          name="_subject"
+          value={`Quote request — ${form.name.trim() || "Website"}`}
+        />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_replyto" value={form.email.trim()} />
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium">Name</span>
             <input
               required
+              name="Name"
+              maxLength={100}
               value={form.name}
               onChange={set("name")}
               placeholder="Your full name"
@@ -112,6 +129,8 @@ function Quote() {
             <input
               required
               type="email"
+              name="Email"
+              maxLength={255}
               value={form.email}
               onChange={set("email")}
               placeholder="you@example.com"
@@ -125,6 +144,8 @@ function Quote() {
           <input
             required
             type="tel"
+            name="Phone"
+            maxLength={30}
             value={form.phone}
             onChange={set("phone")}
             placeholder="+91 …"
@@ -138,6 +159,7 @@ function Quote() {
           </span>
           <input
             type="file"
+            name="attachment"
             accept="image/*"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="w-full cursor-pointer rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-sm file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:text-secondary-foreground"
