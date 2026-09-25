@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 
 export const Route = createFileRoute("/quote")({
   head: () => ({
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/quote")({
 });
 
 const QUOTE_EMAIL = "craftinteriorworks@gmail.com";
-const ENDPOINT = `https://formsubmit.co/ajax/${QUOTE_EMAIL}`;
+const ENDPOINT = `https://formsubmit.co/${QUOTE_EMAIL}`;
 
 const inputCls =
   "w-full rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary";
@@ -51,39 +51,24 @@ function Quote() {
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     setError("");
     if (file && file.size > 5 * 1024 * 1024) {
+      e.preventDefault();
       setError("Please choose a photo smaller than 5 MB.");
       return;
     }
+    // Native multipart POST into a hidden iframe so the photo attachment
+    // is included (the AJAX endpoint drops files).
     setSending(true);
-    try {
-      const fd = new FormData();
-      fd.append("_subject", `Quote request — ${form.name.trim()}`);
-      fd.append("_template", "table");
-      fd.append("_captcha", "false");
-      fd.append("_replyto", form.email.trim());
-      fd.append("Name", form.name.trim().slice(0, 100));
-      fd.append("Email", form.email.trim().slice(0, 255));
-      fd.append("Phone", form.phone.trim().slice(0, 30));
-      fd.append("Dimensions", form.dimensions.trim().slice(0, 200) || "—");
-      fd.append("Message", form.message.trim().slice(0, 2000) || "—");
-      if (file) fd.append("attachment", file);
-      const res = await fetch(ENDPOINT, {
-        method: "POST",
-        body: fd,
-        headers: { Accept: "application/json" },
-      });
-      if (!res.ok) throw new Error("failed");
-      setSubmitted(true);
-    } catch {
-      setError(
-        "Sorry, we couldn't send your request. Please try again or call 093491 41289.",
-      );
-    } finally {
+  };
+
+  const onIframeLoad = () => {
+    if (sending) {
       setSending(false);
+      setSubmitted(true);
     }
   };
 
@@ -110,12 +95,29 @@ function Quote() {
           </p>
         </div>
       ) : (
-      <form onSubmit={onSubmit} className="mt-10 space-y-5">
+      <form
+        onSubmit={onSubmit}
+        action={ENDPOINT}
+        method="POST"
+        encType="multipart/form-data"
+        target="quote-submit-frame"
+        className="mt-10 space-y-5"
+      >
+        <input
+          type="hidden"
+          name="_subject"
+          value={`Quote request — ${form.name.trim() || "Website"}`}
+        />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_replyto" value={form.email.trim()} />
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium">Name</span>
             <input
               required
+              name="Name"
+              maxLength={100}
               value={form.name}
               onChange={set("name")}
               placeholder="Your full name"
@@ -127,6 +129,8 @@ function Quote() {
             <input
               required
               type="email"
+              name="Email"
+              maxLength={255}
               value={form.email}
               onChange={set("email")}
               placeholder="you@example.com"
@@ -140,6 +144,8 @@ function Quote() {
           <input
             required
             type="tel"
+            name="Phone"
+            maxLength={30}
             value={form.phone}
             onChange={set("phone")}
             placeholder="+91 …"
@@ -153,6 +159,7 @@ function Quote() {
           </span>
           <input
             type="file"
+            name="attachment"
             accept="image/*"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="w-full cursor-pointer rounded-sm border border-input bg-background px-3.5 py-2.5 text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-sm file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:text-secondary-foreground"
@@ -167,6 +174,8 @@ function Quote() {
             Dimensions / size
           </span>
           <input
+            name="Dimensions"
+            maxLength={200}
             value={form.dimensions}
             onChange={set("dimensions")}
             placeholder="e.g. room 14 ft × 12 ft, or table 6 ft × 3 ft"
@@ -178,6 +187,8 @@ function Quote() {
           <span className="mb-1.5 block text-sm font-medium">Message</span>
           <textarea
             rows={5}
+            name="Message"
+            maxLength={2000}
             value={form.message}
             onChange={set("message")}
             placeholder="Tell us about the room, the wood you like, the look you're after…"
@@ -199,6 +210,13 @@ function Quote() {
         </button>
       </form>
       )}
+      <iframe
+        ref={iframeRef}
+        name="quote-submit-frame"
+        title="quote submission"
+        onLoad={onIframeLoad}
+        className="hidden"
+      />
     </div>
   );
 }
