@@ -174,6 +174,8 @@ function Quote() {
             Dimensions / size
           </span>
           <input
+            name="Dimensions"
+            maxLength={200}
             value={form.dimensions}
             onChange={set("dimensions")}
             placeholder="e.g. room 14 ft × 12 ft, or table 6 ft × 3 ft"
@@ -185,6 +187,8 @@ function Quote() {
           <span className="mb-1.5 block text-sm font-medium">Message</span>
           <textarea
             rows={5}
+            name="Message"
+            maxLength={2000}
             value={form.message}
             onChange={set("message")}
             placeholder="Tell us about the room, the wood you like, the look you're after…"
@@ -206,6 +210,13 @@ function Quote() {
         </button>
       </form>
       )}
+      <iframe
+        ref={iframeRef}
+        name="quote-submit-frame"
+        title="quote submission"
+        onLoad={onIframeLoad}
+        className="hidden"
+      />
     </div>
   );
 }
