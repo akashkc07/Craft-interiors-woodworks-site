@@ -7,7 +7,7 @@ export const Route = createFileRoute("/contact")({
       {
         name: "description",
         content:
-          "Visit or call Craft Interiors & Wood Works — Peruvemba Rd, Thanneerpanthal, Kinassery, Kerala 678701. Phone 093491 41289. Open 9:30 AM – 6:30 PM.",
+          "Visit or call Craft Interiors & Wood Works — Peruvemba Rd, Thanneerpanthal, Kinassery, Kerala 678701. Phone 093491 41289. Open 9:30 AM – 7:30 PM.",
       },
       {
         property: "og:title",
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/contact")({
       {
         property: "og:description",
         content:
-          "Find us on Peruvemba Rd, Thanneerpanthal, Kinassery. Call 093491 41289. Open 9:30 AM – 6:30 PM.",
+          "Find us on Peruvemba Rd, Thanneerpanthal, Kinassery. Call 093491 41289. Open 9:30 AM – 7:30 PM.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -85,7 +85,7 @@ function Contact() {
             <p className="mt-4 text-sm leading-relaxed">
               Monday – Sunday
               <br />
-              <span className="font-display text-xl">9:30 AM – 6:30 PM</span>
+              <span className="font-display text-xl">9:30 AM – 7:30 PM</span>
             </p>
             <p className="mt-3 text-xs text-muted-foreground">
               Prefer a set time? Call ahead so someone's free to walk you

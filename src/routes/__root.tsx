@@ -124,7 +124,7 @@ function Footer() {
         </div>
         <div>
           <p className="eyebrow text-cream-muted">Open hours</p>
-          <p className="mt-3 text-sm">9:30 AM – 6:30 PM</p>
+          <p className="mt-3 text-sm">9:30 AM – 7:30 PM</p>
           <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-cream-muted">
             <Link to="/categories" className="link-underline hover:text-cream">
               Categories
