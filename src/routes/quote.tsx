@@ -51,39 +51,24 @@ function Quote() {
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     setError("");
     if (file && file.size > 5 * 1024 * 1024) {
+      e.preventDefault();
       setError("Please choose a photo smaller than 5 MB.");
       return;
     }
+    // Native multipart POST into a hidden iframe so the photo attachment
+    // is included (the AJAX endpoint drops files).
     setSending(true);
-    try {
-      const fd = new FormData();
-      fd.append("_subject", `Quote request — ${form.name.trim()}`);
-      fd.append("_template", "table");
-      fd.append("_captcha", "false");
-      fd.append("_replyto", form.email.trim());
-      fd.append("Name", form.name.trim().slice(0, 100));
-      fd.append("Email", form.email.trim().slice(0, 255));
-      fd.append("Phone", form.phone.trim().slice(0, 30));
-      fd.append("Dimensions", form.dimensions.trim().slice(0, 200) || "—");
-      fd.append("Message", form.message.trim().slice(0, 2000) || "—");
-      if (file) fd.append("attachment", file);
-      const res = await fetch(ENDPOINT, {
-        method: "POST",
-        body: fd,
-        headers: { Accept: "application/json" },
-      });
-      if (!res.ok) throw new Error("failed");
-      setSubmitted(true);
-    } catch {
-      setError(
-        "Sorry, we couldn't send your request. Please try again or call 093491 41289.",
-      );
-    } finally {
+  };
+
+  const onIframeLoad = () => {
+    if (sending) {
       setSending(false);
+      setSubmitted(true);
     }
   };
 
