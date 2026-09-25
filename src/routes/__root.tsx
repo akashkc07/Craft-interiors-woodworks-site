@@ -142,7 +142,7 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-cream/10 py-5 text-center text-xs text-cream-muted">
-        © {new Date().getFullYear()} Craft Interiors &amp; Wood Works, Kinassery,
+        © 2023 Craft Interiors &amp; Wood Works, Kinassery,
         Kerala
       </div>
     </footer>
